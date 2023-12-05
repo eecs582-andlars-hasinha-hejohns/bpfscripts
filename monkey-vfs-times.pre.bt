@@ -6,7 +6,7 @@
 
 #define MONKEY_ENTER(x) \
     if($2){ \
-        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe); \
+        printf("[%ld][%ld][%s] u-> %s\n", pid, tid,comm, probe); \
     } \
     if(@ustart[tid]){ /* should be impossible */ \
         exit(); \
@@ -21,6 +21,23 @@
     } \
     @start_out[pid, x] = $now; \
     @name_out[pid] = x;
+
+#define IO_ENTER(x) \
+    if($2){ \
+        printf("[%ld][%ld][%s]\t->k %s\n", pid, tid,comm, probe); \
+    } \
+    if(@kstart[tid]){ /* should be on a different thread */ \
+        printf("Uh oh!\n"); \
+        exit(); \
+    } \
+    $now = nsecs; \
+    @kstart[tid] = $now; \
+    @kname[tid] = func; \
+    if(@start_out[pid, x]){ /* this request should've started at monkey */ \
+        @out_us[@name_out[pid]] = hist(($now - @start_out[pid, x]) / 1000); \
+        delete(@start_out[pid, x]); \
+        delete(@name_out[pid]); \
+    }
 
 BEGIN
 {
@@ -40,16 +57,36 @@ END
 
 usdt:$1:read_enter
 {
-    MONKEY_ENTER(read)
+    MONKEY_ENTER("read")
+}
+usdt:$1:write_enter
+{
+    MONKEY_ENTER("write")
+}
+usdt:$1:open_enter
+{
+    MONKEY_ENTER("open")
+}
+usdt:$1:close_enter
+{
+    MONKEY_ENTER("close")
+}
+usdt:$1:fsync_enter
+{
+    MONKEY_ENTER("fsync")
 }
 
-usdt:$1:read_exit
+usdt:$1:read_exit,usdt:$1:write_exit,usdt:$1:open_exit,usdt:$1:close_exit,usdt:$1:fsync_exit
 /@ustart[tid]/
 {
     if($2){
-        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
+        printf("[%ld][%ld][%s] u<- %s\n\n", pid, tid,comm, probe);
     }
-    @uread_us[@uname[tid]] = hist((nsecs - @ustart[tid]) / 1000);
+    if(!@ustart[tid]){
+        printf("fatal\n");
+        exit();
+    }
+    @utotal_us[@uname[tid]] = hist((nsecs - @ustart[tid]) / 1000);
     delete(@ustart[tid]);
     delete(@uname[tid]);
 }
@@ -60,29 +97,38 @@ usdt:$1:read_exit
 //}
 
 kprobe:io_read
-{ $func = "read";
-    if($2){
-        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
-        printf("%s\n", kstack());
-    }
-    if(@kstart[tid]){ // should be on a different thread
-        printf("Uh oh!\n");
-        exit();
-    }
-    $now = nsecs;
-    @kstart[tid] = $now;
-    @kname[tid] = func;
-    if(@start_out[pid, $func] == 0){ // this request should've started at monkey
-        printf("Uh oh!\n");
-        exit();
-    }
-    @out_us = hist(($now - @start_out[pid, $func]) / 1000);
+/strcontains(comm, "iou-sqp-")/
+{
+    IO_ENTER("read")
+}
+kprobe:io_write
+/strcontains(comm, "iou-sqp-")/
+{
+    IO_ENTER("write")
+}
+kprobe:io_openat
+/strcontains(comm, "iou-sqp-")/
+{
+    IO_ENTER("openat")
+}
+kprobe:io_close
+/strcontains(comm, "iou-sqp-")/
+{
+    IO_ENTER("close")
+}
+kprobe:io_fsync
+/strcontains(comm, "iou-sqp-")/
+{
+    IO_ENTER("fsync")
 }
 
-kretprobe:io_read
-/@kstart[tid]/
-{
-    @kread_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
+kretprobe:io_read,kretprobe:io_write,kretprobe:io_openat,kretprobe:io_close,kretprobe:io_fsync
+/strcontains(comm, "iou-sqp-") && @kstart[tid]/
+{ // idk what the iou-wrk- worker business is if you comment out strcontains
+    if($2){
+        printf("[%ld][%ld][%s]\t<-k %s\n", pid, tid,comm, probe);
+    }
+    @ktotal_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
     delete(@kstart[tid]);
     delete(@kname[tid]);
 }

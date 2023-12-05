@@ -1,4 +1,4 @@
-#/usr/bin/env bpftrace
+#!/usr/bin/env bpftrace
 BEGIN
 {
     printf("Hit Ctrl-C to end.\n");
@@ -17,16 +17,36 @@ END
 
 usdt:$1:read_enter
 {
-    if($2){ printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe); } if(@ustart[tid]){ exit(); } $now = nsecs; @ustart[tid] = $now; @uname[tid] = read; if(@start_out[pid, read]){ printf("Uh ohh!\n"); exit(); } @start_out[pid, read] = $now; @name_out[pid] = read;
+    if($2){ printf("[%ld][%ld][%s] u-> %s\n", pid, tid,comm, probe); } if(@ustart[tid]){ exit(); } $now = nsecs; @ustart[tid] = $now; @uname[tid] = "read"; if(@start_out[pid, "read"]){ printf("Uh ohh!\n"); exit(); } @start_out[pid, "read"] = $now; @name_out[pid] = "read";
+}
+usdt:$1:write_enter
+{
+    if($2){ printf("[%ld][%ld][%s] u-> %s\n", pid, tid,comm, probe); } if(@ustart[tid]){ exit(); } $now = nsecs; @ustart[tid] = $now; @uname[tid] = "write"; if(@start_out[pid, "write"]){ printf("Uh ohh!\n"); exit(); } @start_out[pid, "write"] = $now; @name_out[pid] = "write";
+}
+usdt:$1:open_enter
+{
+    if($2){ printf("[%ld][%ld][%s] u-> %s\n", pid, tid,comm, probe); } if(@ustart[tid]){ exit(); } $now = nsecs; @ustart[tid] = $now; @uname[tid] = "open"; if(@start_out[pid, "open"]){ printf("Uh ohh!\n"); exit(); } @start_out[pid, "open"] = $now; @name_out[pid] = "open";
+}
+usdt:$1:close_enter
+{
+    if($2){ printf("[%ld][%ld][%s] u-> %s\n", pid, tid,comm, probe); } if(@ustart[tid]){ exit(); } $now = nsecs; @ustart[tid] = $now; @uname[tid] = "close"; if(@start_out[pid, "close"]){ printf("Uh ohh!\n"); exit(); } @start_out[pid, "close"] = $now; @name_out[pid] = "close";
+}
+usdt:$1:fsync_enter
+{
+    if($2){ printf("[%ld][%ld][%s] u-> %s\n", pid, tid,comm, probe); } if(@ustart[tid]){ exit(); } $now = nsecs; @ustart[tid] = $now; @uname[tid] = "fsync"; if(@start_out[pid, "fsync"]){ printf("Uh ohh!\n"); exit(); } @start_out[pid, "fsync"] = $now; @name_out[pid] = "fsync";
 }
 
-usdt:$1:read_exit
+usdt:$1:read_exit,usdt:$1:write_exit,usdt:$1:open_exit,usdt:$1:close_exit,usdt:$1:fsync_exit
 /@ustart[tid]/
 {
     if($2){
-        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
+        printf("[%ld][%ld][%s] u<- %s\n\n", pid, tid,comm, probe);
     }
-    @uread_us[@uname[tid]] = hist((nsecs - @ustart[tid]) / 1000);
+    if(!@ustart[tid]){
+        printf("fatal\n");
+        exit();
+    }
+    @utotal_us[@uname[tid]] = hist((nsecs - @ustart[tid]) / 1000);
     delete(@ustart[tid]);
     delete(@uname[tid]);
 }
@@ -37,29 +57,38 @@ usdt:$1:read_exit
 
 
 kprobe:io_read
-{ $func = "read";
-    if($2){
-        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
-        printf("%s\n", kstack());
-    }
-    if(@kstart[tid]){
-        printf("Uh oh!\n");
-        exit();
-    }
-    $now = nsecs;
-    @kstart[tid] = $now;
-    @kname[tid] = func;
-    if(@start_out[pid, $func] == 0){
-        printf("Uh oh!\n");
-        exit();
-    }
-    @out_us = hist(($now - @start_out[pid, $func]) / 1000);
+/strcontains(comm, "iou-sqp-")/
+{
+    if($2){ printf("[%ld][%ld][%s]\t->k %s\n", pid, tid,comm, probe); } if(@kstart[tid]){ printf("Uh oh!\n"); exit(); } $now = nsecs; @kstart[tid] = $now; @kname[tid] = func; if(@start_out[pid, "read"]){ @out_us[@name_out[pid]] = hist(($now - @start_out[pid, "read"]) / 1000); delete(@start_out[pid, "read"]); delete(@name_out[pid]); }
+}
+kprobe:io_write
+/strcontains(comm, "iou-sqp-")/
+{
+    if($2){ printf("[%ld][%ld][%s]\t->k %s\n", pid, tid,comm, probe); } if(@kstart[tid]){ printf("Uh oh!\n"); exit(); } $now = nsecs; @kstart[tid] = $now; @kname[tid] = func; if(@start_out[pid, "write"]){ @out_us[@name_out[pid]] = hist(($now - @start_out[pid, "write"]) / 1000); delete(@start_out[pid, "write"]); delete(@name_out[pid]); }
+}
+kprobe:io_openat
+/strcontains(comm, "iou-sqp-")/
+{
+    if($2){ printf("[%ld][%ld][%s]\t->k %s\n", pid, tid,comm, probe); } if(@kstart[tid]){ printf("Uh oh!\n"); exit(); } $now = nsecs; @kstart[tid] = $now; @kname[tid] = func; if(@start_out[pid, "openat"]){ @out_us[@name_out[pid]] = hist(($now - @start_out[pid, "openat"]) / 1000); delete(@start_out[pid, "openat"]); delete(@name_out[pid]); }
+}
+kprobe:io_close
+/strcontains(comm, "iou-sqp-")/
+{
+    if($2){ printf("[%ld][%ld][%s]\t->k %s\n", pid, tid,comm, probe); } if(@kstart[tid]){ printf("Uh oh!\n"); exit(); } $now = nsecs; @kstart[tid] = $now; @kname[tid] = func; if(@start_out[pid, "close"]){ @out_us[@name_out[pid]] = hist(($now - @start_out[pid, "close"]) / 1000); delete(@start_out[pid, "close"]); delete(@name_out[pid]); }
+}
+kprobe:io_fsync
+/strcontains(comm, "iou-sqp-")/
+{
+    if($2){ printf("[%ld][%ld][%s]\t->k %s\n", pid, tid,comm, probe); } if(@kstart[tid]){ printf("Uh oh!\n"); exit(); } $now = nsecs; @kstart[tid] = $now; @kname[tid] = func; if(@start_out[pid, "fsync"]){ @out_us[@name_out[pid]] = hist(($now - @start_out[pid, "fsync"]) / 1000); delete(@start_out[pid, "fsync"]); delete(@name_out[pid]); }
 }
 
-kretprobe:io_read
-/@kstart[tid]/
+kretprobe:io_read,kretprobe:io_write,kretprobe:io_openat,kretprobe:io_close,kretprobe:io_fsync
+/strcontains(comm, "iou-sqp-") && @kstart[tid]/
 {
-    @kread_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
+    if($2){
+        printf("[%ld][%ld][%s]\t<-k %s\n", pid, tid,comm, probe);
+    }
+    @ktotal_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
     delete(@kstart[tid]);
     delete(@kname[tid]);
 }
