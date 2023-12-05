@@ -17,7 +17,7 @@ END
     clear(@name);
 }
 
-usdt:/home/hejohns/582/io_uring_example/test-monkey/test-monkey.so:monkey:read_enter
+usdt:$1:read_enter
 {
     @enter[tid] = pid;
     @start[tid] = nsecs;
@@ -25,7 +25,7 @@ usdt:/home/hejohns/582/io_uring_example/test-monkey/test-monkey.so:monkey:read_e
     printf("We got here!\n");
 }
 
-usdt:/home/hejohns/582/io_uring_example/test-monkey/test-monkey.so:monkey:read_exit
+usdt:$1:read_exit
 /@enter[tid]/
 {
     printf("I'm probably %ld; %s\n", @enter[tid], comm);
