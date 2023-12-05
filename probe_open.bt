@@ -1,0 +1,14 @@
+#!/usr/bin/bpftrace
+
+uprobe:libc:open
+{
+	@start[tid] = nsecs;
+}
+
+kprobe:do_sys_openat2
+/@start[tid]/
+{
+	@total[comm] += (nsecs - @start[tid]);
+	@counter[comm] = count();
+	delete(@start[tid]);
+}
