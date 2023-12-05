@@ -1,0 +1,6 @@
+#!/usr/bin/bpftrace
+
+tracepoint:syscalls:sys_enter_io_uring_enter
+{
+	printf("Task Name: %s with pid=%d made an io_uring_enter syscall\n", comm, tid);
+}
