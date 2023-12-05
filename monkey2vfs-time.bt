@@ -1,0 +1,50 @@
+#!/usr/bin/env bpftrace
+/*
+ * TODO: name, explanation, etc.
+ *
+ * based off Brendan Gregg's scripts + cheatsheet
+ */
+BEGIN
+{
+    printf("Hit Ctrl-C to end.\n");
+}
+
+// don't print these things
+END
+{
+    clear(@enter);
+    clear(@start);
+    clear(@name);
+}
+
+usdt:/home/hejohns/582/io_uring_example/test-monkey/test-monkey.so:monkey:read_enter
+{
+    @enter[tid] = pid;
+    @start[tid] = nsecs;
+    @name[tid] = probe; // since we wildcard the probe
+    printf("We got here!\n");
+}
+
+usdt:/home/hejohns/582/io_uring_example/test-monkey/test-monkey.so:monkey:read_exit
+/@enter[tid]/
+{
+    printf("I'm probably %ld; %s\n", @enter[tid], comm);
+    delete(@enter[tid]);
+    delete(@start[tid]);
+    delete(@name[tid]);
+}
+
+kprobe:vfs_*
+/@enter[tid]/
+{
+    //@enter[tid] = pid;
+    //@start[tid] = nsecs;
+}
+
+// filter to only when we've gone through the kprobe
+kretprobe:vfs_*
+/@enter[tid]/
+{
+    @microsecs[@name[tid]] = hist((nsecs - @start[tid]) / 1000);
+    //printf("%s\n", kstack(perf));
+}

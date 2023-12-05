@@ -1,0 +1,36 @@
+#!/usr/bin/env bpftrace
+/*
+ * TODO: name, explanation, etc.
+ *
+ * based off Brendan Gregg's scripts + cheatsheet
+ */
+BEGIN
+{
+    printf("Hit Ctrl-C to end.\n");
+}
+
+// don't print these things
+END
+{
+    clear(@enter);
+    clear(@start);
+    clear(@name);
+}
+
+kprobe:vfs_*
+{
+    @enter[tid] = pid;
+    @start[tid] = nsecs;
+    @name[tid] = func;
+}
+
+// filter to only when we've gone through the kprobe
+kretprobe:vfs_*
+/@enter[tid]/
+{
+    @microsecs[@name[tid]] = hist((nsecs - @start[tid]) / 1000);
+    delete(@enter[tid]);
+    delete(@start[tid]);
+    delete(@name[tid]);
+    //printf("%s\n", kstack(perf));
+}
