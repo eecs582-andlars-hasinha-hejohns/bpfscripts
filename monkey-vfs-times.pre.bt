@@ -1,0 +1,121 @@
+/*
+ * TODO: name, explanation, etc.
+ *
+ * based off Brendan Gregg's scripts + cheatsheet
+ */
+
+#define MONKEY_ENTER(x) \
+    if($2){ \
+        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe); \
+    } \
+    if(@ustart[tid]){ /* should be impossible */ \
+        exit(); \
+    } \
+    $now = nsecs; \
+    @ustart[tid] = $now; \
+    @uname[tid] = x; /* can't use func */ \
+    /* the following only works for single threaded programs */ \
+    if(@start_out[pid, x]){ \
+        printf("Uh ohh!\n"); \
+        exit(); \
+    } \
+    @start_out[pid, x] = $now; \
+    @name_out[pid] = x;
+
+BEGIN
+{
+    printf("Hit Ctrl-C to end.\n");
+}
+
+// don't print these things
+END
+{
+    clear(@ustart);
+    clear(@uname);
+    clear(@kstart);
+    clear(@kname);
+    clear(@start_out);
+    clear(@name_out);
+}
+
+usdt:$1:read_enter
+{
+    MONKEY_ENTER(read)
+}
+
+usdt:$1:read_exit
+/@ustart[tid]/
+{
+    if($2){
+        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
+    }
+    @uread_us[@uname[tid]] = hist((nsecs - @ustart[tid]) / 1000);
+    delete(@ustart[tid]);
+    delete(@uname[tid]);
+}
+
+//kprobe:io_sq_thread
+//{
+//    //@sqpoll = comm;
+//}
+
+kprobe:io_read
+{ $func = "read";
+    if($2){
+        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
+        printf("%s\n", kstack());
+    }
+    if(@kstart[tid]){ // should be on a different thread
+        printf("Uh oh!\n");
+        exit();
+    }
+    $now = nsecs;
+    @kstart[tid] = $now;
+    @kname[tid] = func;
+    if(@start_out[pid, $func] == 0){ // this request should've started at monkey
+        printf("Uh oh!\n");
+        exit();
+    }
+    @out_us = hist(($now - @start_out[pid, $func]) / 1000);
+}
+
+kretprobe:io_read
+/@kstart[tid]/
+{
+    @kread_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
+    delete(@kstart[tid]);
+    delete(@kname[tid]);
+}
+
+//kprobe:io_write
+//{
+//    printf("[%ld][%s] entered %s\n", pid, comm, probe);
+//    printf("%s\n", kstack());
+//    //@enter[tid] = pid;
+//    //@start[tid] = nsecs;
+//}
+//
+//kprobe:io_openat
+//{
+//    printf("[%ld][%s] entered %s\n", pid, comm, probe);
+//    printf("%s\n", kstack());
+//    //@enter[tid] = pid;
+//    //@start[tid] = nsecs;
+//}
+
+kprobe:vfs_read
+/strcontains(comm, "iou-sqp-")/
+{
+    printf("%s\n", kstack(perf));
+    exit(); // io_uring doesn't seem to ever call vfs_read
+}
+
+kretprobe:vfs_read
+/strcontains(comm, "iou-sqp-")/
+{
+    //@microsecs[@name[tid]] = hist((nsecs - @start[tid]) / 1000);
+    ////printf("%s\n", kstack(perf));
+    printf("Weeeeee!\n");
+}
+
+

@@ -1,0 +1,79 @@
+#/usr/bin/env bpftrace
+BEGIN
+{
+    printf("Hit Ctrl-C to end.\n");
+}
+
+
+END
+{
+    clear(@ustart);
+    clear(@uname);
+    clear(@kstart);
+    clear(@kname);
+    clear(@start_out);
+    clear(@name_out);
+}
+
+usdt:$1:read_enter
+{
+    if($2){ printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe); } if(@ustart[tid]){ exit(); } $now = nsecs; @ustart[tid] = $now; @uname[tid] = read; if(@start_out[pid, read]){ printf("Uh ohh!\n"); exit(); } @start_out[pid, read] = $now; @name_out[pid] = read;
+}
+
+usdt:$1:read_exit
+/@ustart[tid]/
+{
+    if($2){
+        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
+    }
+    @uread_us[@uname[tid]] = hist((nsecs - @ustart[tid]) / 1000);
+    delete(@ustart[tid]);
+    delete(@uname[tid]);
+}
+
+
+
+
+
+
+kprobe:io_read
+{ $func = "read";
+    if($2){
+        printf("[%ld][%ld][%s] entered %s\n", pid, tid,comm, probe);
+        printf("%s\n", kstack());
+    }
+    if(@kstart[tid]){
+        printf("Uh oh!\n");
+        exit();
+    }
+    $now = nsecs;
+    @kstart[tid] = $now;
+    @kname[tid] = func;
+    if(@start_out[pid, $func] == 0){
+        printf("Uh oh!\n");
+        exit();
+    }
+    @out_us = hist(($now - @start_out[pid, $func]) / 1000);
+}
+
+kretprobe:io_read
+/@kstart[tid]/
+{
+    @kread_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
+    delete(@kstart[tid]);
+    delete(@kname[tid]);
+}
+kprobe:vfs_read
+/strcontains(comm, "iou-sqp-")/
+{
+    printf("%s\n", kstack(perf));
+    exit();
+}
+
+kretprobe:vfs_read
+/strcontains(comm, "iou-sqp-")/
+{
+
+
+    printf("Weeeeee!\n");
+}
