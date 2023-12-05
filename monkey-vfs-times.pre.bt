@@ -6,7 +6,7 @@
 
 #define MONKEY_ENTER(x) \
     if($2){ \
-        printf("[%ld][%ld][%s] u-> %s\n", pid, tid,comm, probe); \
+        printf("[%ld][%ld][%ld][%s] u-> %s\n", cpu, pid, tid,comm, probe); \
     } \
     if(@ustart[tid]){ /* should be impossible */ \
         exit(); \
@@ -24,7 +24,7 @@
 
 #define IO_ENTER(x) \
     if($2){ \
-        printf("[%ld][%ld][%s]\t->k %s\n", pid, tid,comm, probe); \
+        printf("[%ld][%ld][%ld][%s]\t->k %s\n", cpu, pid, tid,comm, probe); \
     } \
     if(@kstart[tid]){ /* should be on a different thread */ \
         printf("Uh oh!\n"); \
@@ -80,7 +80,7 @@ usdt:$1:read_exit,usdt:$1:write_exit,usdt:$1:open_exit,usdt:$1:close_exit,usdt:$
 /@ustart[tid]/
 {
     if($2){
-        printf("[%ld][%ld][%s] u<- %s\n\n", pid, tid,comm, probe);
+        printf("[%ld][%ld][%ld][%s] u<- %s\n\n", cpu, pid, tid,comm, probe);
     }
     if(!@ustart[tid]){
         printf("fatal\n");
@@ -126,7 +126,7 @@ kretprobe:io_read,kretprobe:io_write,kretprobe:io_openat,kretprobe:io_close,kret
 /strcontains(comm, "iou-sqp-") && @kstart[tid]/
 { // idk what the iou-wrk- worker business is if you comment out strcontains
     if($2){
-        printf("[%ld][%ld][%s]\t<-k %s\n", pid, tid,comm, probe);
+        printf("[%ld][%ld][%ld][%s]\t<-k %s\n", cpu, pid, tid,comm, probe);
     }
     @ktotal_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
     delete(@kstart[tid]);
