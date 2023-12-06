@@ -40,3 +40,17 @@ tracepoint:syscalls:sys_enter_mmap
 {
 	@sys_enter_mmap[comm] = count();
 }
+
+// Programs are executed by first making execve syscall
+tracepoint:syscalls:sys_enter_execve
+{
+	@execve_call_time[tid] = nsecs;
+}
+
+// All test programs must call getpid first so we know we have hit main()
+tracepoint:syscalls:sys_exit_getpid
+/@execve_call_time[tid]/
+{
+	@time_to_main[comm] = (nsecs - @execve_call_time[tid]);
+	delete(@execve_call_time[tid]);
+}
