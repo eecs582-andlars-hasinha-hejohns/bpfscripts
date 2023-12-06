@@ -1,5 +1,11 @@
 #!/usr/bin/bpftrace
 
+tracepoint:syscalls:sys_enter_io_uring_setup
+{
+	@sys_enter_io_uring_setup[comm] = count();
+}
+
+
 tracepoint:syscalls:sys_enter_io_uring_enter
 {
 	@sys_enter_io_uring_enter[comm] = count();
@@ -8,4 +14,29 @@ tracepoint:syscalls:sys_enter_io_uring_enter
 tracepoint:syscalls:sys_enter_openat
 {
 	@sys_enter_openat[comm] = count();
+}
+
+tracepoint:syscalls:sys_enter_read
+{
+	@sys_enter_read[comm] = count();
+}
+
+tracepoint:syscalls:sys_enter_write
+{
+	@sys_enter_write[comm] = count();
+}
+
+tracepoint:syscalls:sys_enter_fsync
+{
+	@sys_enter_fsync[comm] = count();
+}
+
+tracepoint:syscalls:sys_enter_close
+{
+	@sys_enter_close[comm] = count();
+}
+
+tracepoint:syscalls:sys_enter_mmap
+{
+	@sys_enter_mmap[comm] = count();
 }
