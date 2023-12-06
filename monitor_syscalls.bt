@@ -2,5 +2,10 @@
 
 tracepoint:syscalls:sys_enter_io_uring_enter
 {
-	printf("Task Name: %s with pid=%d made an io_uring_enter syscall\n", comm, tid);
+	@sys_enter_io_uring_enter[comm] = count();
+}
+
+tracepoint:syscalls:sys_enter_openat
+{
+	@sys_enter_openat[comm] = count();
 }
