@@ -12,3 +12,12 @@ When a script starts succesfully the following message should be seen:
 `Attaching X probes...`
 
 Depending on which script you are running you may see occasional print outs when the scripts is running. To end the script and print the results you have to ctrl-c out of the program. At this point the script will print out all variables that it has been updating while running. 
+
+# Script Overview
+The following subsections explain what each file/script does.
+## monitor_syscalls
+This script will monitor the number of times each of the following syscalls is made by a specific process: open, read, write, fsync, close, mmap, io_uring_setup, and io_uring_enter. Addtionally, it will provide the amount of time that it takes a process to hit the main function. For this feature to work, a program must call the `getpid()` upon entry to the `main()` function. The final output will resemble to following format:  
+`@sys_enter_SYSCALL[process_name]: number_of_times_called`  
+`@time_to_main[process_name]: time_in_nanoseconds`
+
+
