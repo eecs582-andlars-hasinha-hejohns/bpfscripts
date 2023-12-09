@@ -52,3 +52,6 @@ The output will be as follows:
 `@counter[process_name] = times_called`  
 
 To get the average one has to manually divide the total and counter values.
+
+## vfs_time
+This script will create histograms for how long it takes vfs to service any request (vfs_open, vfs_close, etc.). User will have to ctrl-c the script to print the histograms.
