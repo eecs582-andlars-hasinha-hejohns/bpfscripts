@@ -22,6 +22,9 @@ This script will monitor the number of times each of the following syscalls is m
 `@time_to_main[process_name]: time_in_nanoseconds`  
 
 ## monkey-vfs-times
+**Usage:** You have to provde a relative path libmonkey.so as an argument to the script. Running this script will look like the following:  
+`sudo ./monkey-vfs-times.bt ../relative/path/to/libmonkey.so`  
+
 This script will monitor the following information for the following syscalls: open, read, write, fsycn, close.  
 * User enters modified syscall implementation
 * Kernel thread starts servicing io request
