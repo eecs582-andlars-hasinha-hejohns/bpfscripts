@@ -40,4 +40,15 @@ Once a user ctrl-c out of the script it will print timing information in the for
 ## monkey-vfs-time.pre + Makefile
 This generates the monkey-vfs-times.bt script. We use this hack to avoid having to copy-paste a bunch of probes and make use of a macro instead.  
 
-***Note:*** You should not have to use these files
+***Note:*** You should not have to use these files  
+
+## probe_open
+This script measures how long it takes from the following point to the following point:
+* User application calling unmodified glibc `open()` syscall
+* Kernel calling the kernel-implementation of opening somthing: `do_sys_openat2()`
+
+The output will be as follows:  
+`@total[process_name] = time_in_nanoseconds`  
+`@counter[process_name] = times_called`  
+
+To get the average one has to manually divide the total and counter values.
