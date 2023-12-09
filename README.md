@@ -21,7 +21,7 @@ This script will monitor the number of times each of the following syscalls is m
 `@sys_enter_SYSCALL[process_name]: number_of_times_called`  
 `@time_to_main[process_name]: time_in_nanoseconds`  
 
-## monitor-vfs-time
+## monkey-vfs-times
 This script will monitor the following information for the following syscalls: open, read, write, fsycn, close.  
 * User enters modified syscall implementation
 * Kernel thread starts servicing io request
@@ -33,3 +33,8 @@ As the script is running (prior to ctrl-c) it will print out all of the informat
 Once a user ctrl-c out of the script it will print timing information in the form of histograms.  
   
 ***Note:*** this is for use with our modified syscalls
+
+## monkey-vfs-time.pre + Makefile
+This generates the monkey-vfs-times.bt script. We use this hack to avoid having to copy-paste a bunch of probes and make use of a macro instead.  
+
+***Note:*** You should not have to use these files
