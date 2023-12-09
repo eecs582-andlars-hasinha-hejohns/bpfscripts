@@ -1,6 +1,9 @@
 # Requirements
 We require the use of linux kernel v6.2.x or greater and bpftrace v0.19.0 to be able to run all of our scripts in this repo.
 
+You should be able to install bpftrace as follows:  
+`sudo apt install -y bpftrace`
+
 # Usage
 bpftrace requires root privilege to run so all the scripts in this repo require you to call them as follows:  
 `sudo ./script_name.bt`  
