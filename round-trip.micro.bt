@@ -1,0 +1,38 @@
+#!/usr/bin/env bpftrace
+
+BEGIN
+{
+    printf("Hit Ctrl-C to end.\n");
+}
+
+END
+{
+    clear(@follow);
+    clear(@name);
+}
+
+uprobe:libc:read,
+uprobe:libc:write,
+uprobe:libc:open,
+uprobe:libc:close
+{
+    @follow[tid] = nsecs;
+    @name[tid] = func;
+}
+
+uretprobe:libc:read,
+uretprobe:libc:write,
+uretprobe:libc:open,
+uretprobe:libc:close
+/@follow[tid]/
+{
+    $total_us = (nsecs - @follow[tid]) / 1000;
+    @trip_us[@name[tid]] = hist($total_us);
+    delete(@follow[tid]);
+    delete(@name[tid]);
+}
+
+interval:s:1
+{
+    print(hist(@trip_us));
+}
