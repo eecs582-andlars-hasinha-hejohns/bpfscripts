@@ -16,7 +16,7 @@ Depending on which script you are running you may see occasional print outs when
 # Sample Program
 Navigate to 'sample_program' directory and build by calling 'make'. This is a simple program that you can test all scripts in this repo with. There are two ways of running the program:  
 * `./sample_program` - this method will use standard glibc
-* `LD_PRELOAD=../relative/path/to/libmonkey.so ./sample_program` - this method will use our modified glibc
+* `LD_PRELOAD=../relative/path/to/libmonkey.so ./sample_program` - this method will use our modified syscalls
 
 # Script Overview
 The following subsections explain what each file/script does.
