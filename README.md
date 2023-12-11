@@ -58,5 +58,8 @@ The output will be as follows:
 
 To get the average one has to manually divide the total and counter values.
 
+## round-trip.micro.bt
+This script measures how long it takes to make any of the following syscall: read, write, open, close. When the user ctrl-c out of the script it will print a histogram of times it took. It is meant to be run to measure a program making multiple (previously listed) syscalls. Not to be used to measure libmonkey.so
+
 ## vfs_time
 This script will create histograms for how long it takes vfs to service any request (vfs_open, vfs_close, etc.). User will have to ctrl-c the script to print the histograms.
