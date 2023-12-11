@@ -8,6 +8,11 @@ BEGIN
 END
 {
     clear(@follow);
+
+    clear(@read_ns);
+    clear(@write_ns);
+    clear(@open_ns);
+    clear(@close_ns);
 }
 
 uprobe:libc:read
@@ -41,6 +46,7 @@ uretprobe:libc:read
     $total = nsecs - @follow;
     @read_ns[@event_count["read"]] = $total;
     delete(@follow);
+    @read_ns_hist = stats($total);
 }
 uretprobe:libc:write
 /pid == $1 && @follow/
@@ -48,6 +54,7 @@ uretprobe:libc:write
     $total = nsecs - @follow;
     @write_ns[@event_count["write"]] = $total;
     delete(@follow);
+    @write_ns_hist = stats($total);
 }
 uretprobe:libc:open
 /pid == $1 && @follow/
@@ -55,6 +62,7 @@ uretprobe:libc:open
     $total = nsecs - @follow;
     @open_ns[@event_count["open"]] = $total;
     delete(@follow);
+    @open_ns_hist = stats($total);
 }
 uretprobe:libc:close
 /pid == $1 && @follow/
@@ -62,19 +70,20 @@ uretprobe:libc:close
     $total = nsecs - @follow;
     @close_ns[@event_count["close"]] = $total;
     delete(@follow);
+    @close_ns_hist = stats($total);
 }
 
-interval:s:1
-{
-    print(@read_ns);
-    clear(@read_ns);
-
-    print(@write_ns);
-    clear(@write_ns);
-
-    print(@open_ns);
-    clear(@open_ns);
-
-    print(@close_ns);
-    clear(@close_ns);
-}
+//interval:s:1
+//{
+//    print(@read_ns);
+//    clear(@read_ns);
+//
+//    print(@write_ns);
+//    clear(@write_ns);
+//
+//    print(@open_ns);
+//    clear(@open_ns);
+//
+//    print(@close_ns);
+//    clear(@close_ns);
+//}
