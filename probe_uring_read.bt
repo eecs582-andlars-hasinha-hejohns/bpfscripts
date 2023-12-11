@@ -1,0 +1,32 @@
+#!/usr/bin/bpftrace
+
+usdt:$1:read_enter
+{
+	@start_read = nsecs;
+}
+
+kprobe:io_read
+/@start_read/
+{
+	@start_read_kernel = nsecs;
+	@total_to_kernel[comm] += (@start_read_kernel - @start_read);
+	@counter_to_kernel[comm] = count();
+	delete(@start_read);
+}
+
+kretprobe:io_read
+/@start_read_kernel/
+{
+	@end_read_kernel = nsecs;
+	@total_service[comm] += (@end_read_kernel - @start_read_kernel);
+	@counter_service[comm] = count();
+	delete(@start_read_kernel)
+}
+
+usdt:$1:read_exit
+/@end_read_kernel/
+{
+	@total_to_user[comm] += (nsecs - @end_read_kernel);
+	@counter_to_user[comm] = count();
+	delete(@end_read_kernel);
+}
