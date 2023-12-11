@@ -1,0 +1,80 @@
+#!/usr/bin/env bpftrace
+
+BEGIN
+{
+    printf("Hit Ctrl-C to end.\n");
+}
+
+END
+{
+    clear(@follow);
+}
+
+uprobe:libc:read
+/pid == $1 && !@follow/
+{
+    @follow = nsecs;
+    @event_count["read"]++;
+}
+uprobe:libc:write
+/pid == $1 && !@follow/
+{
+    @follow = nsecs;
+    @event_count["write"]++;
+}
+uprobe:libc:open
+/pid == $1 && !@follow/
+{
+    @follow = nsecs;
+    @event_count["open"]++;
+}
+uprobe:libc:close
+/pid == $1 && !@follow/
+{
+    @follow = nsecs;
+    @event_count["close"]++;
+}
+
+uretprobe:libc:read
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @read_ns[@event_count["read"]] = $total;
+    delete(@follow);
+}
+uretprobe:libc:write
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @write_ns[@event_count["write"]] = $total;
+    delete(@follow);
+}
+uretprobe:libc:open
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @open_ns[@event_count["open"]] = $total;
+    delete(@follow);
+}
+uretprobe:libc:close
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @close_ns[@event_count["close"]] = $total;
+    delete(@follow);
+}
+
+interval:s:1
+{
+    print(@read_ns);
+    clear(@read_ns);
+
+    print(@write_ns);
+    clear(@write_ns);
+
+    print(@open_ns);
+    clear(@open_ns);
+
+    print(@close_ns);
+    clear(@close_ns);
+}

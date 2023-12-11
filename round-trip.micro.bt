@@ -3,6 +3,7 @@
 BEGIN
 {
     printf("Hit Ctrl-C to end.\n");
+    //@first = 1;
 }
 
 END
@@ -15,24 +16,40 @@ uprobe:libc:read,
 uprobe:libc:write,
 uprobe:libc:open,
 uprobe:libc:close
+/pid == $1/
 {
     @follow[tid] = nsecs;
+    //printf("[%ld][%s]%s\n", pid, comm, func);
     @name[tid] = func;
+    @event_count[tid, func] = count();
+
+    //if(@first){
+    //    printf("read: %X\n", uaddr("read"));
+    //    printf("write: %X\n", uaddr("write"));
+    //    printf("open: %X\n", uaddr("open"));
+    //    printf("close: %X\n", uaddr("close"));
+    //    delete(@first);
+    //}
 }
 
 uretprobe:libc:read,
 uretprobe:libc:write,
 uretprobe:libc:open,
 uretprobe:libc:close
-/@follow[tid]/
+/pid == $1 && @follow[tid]/
 {
-    $total_us = (nsecs - @follow[tid]) / 1000;
-    @trip_us[@name[tid]] = hist($total_us);
+    $total_us = nsecs - @follow[tid];
+    //@trip_us[@name[tid]] = lhist($total_us, 0, 1000, 1);
+    @total_ns[tid, func, @event_count[tid, @name[tid]]] = $total_us;
+    printf("%ld\n", @total_ns[tid, func, @event_count[tid, @name[tid]]]);
+    print(@total_ns);
     delete(@follow[tid]);
     delete(@name[tid]);
 }
 
-interval:s:1
-{
-    print(hist(@trip_us));
-}
+//interval:s:30
+//{
+//    printf("\n");
+//    print(@trip_us);
+//    printf("\n");
+//}
