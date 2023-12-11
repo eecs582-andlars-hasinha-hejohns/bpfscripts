@@ -2,13 +2,31 @@
 
 uprobe:libc:open
 {
-	@start[tid] = nsecs;
+	@start_open[tid] = nsecs;
 }
 
 kprobe:do_sys_openat2
-/@start[tid]/
+/@start_open[tid]/
 {
-	@total[comm] += (nsecs - @start[tid]);
-	@counter[comm] = count();
-	delete(@start[tid]);
+	@start_openat[tid] = nsecs;
+	@total_to_kernel[comm] += (@start_openat[tid] - @start_open[tid]);
+	@counter_to_kernel[comm] = count();
+	delete(@start_open[tid]);
+}
+
+kretprobe:do_sys_openat2
+/@start_openat[tid]/
+{
+	@end_openat[tid] = nsecs;
+	@total_service[comm] += (@end_openat[tid] - @start_openat[tid]);
+	@counter_service[comm] = count();
+	delete(@start_openat[tid])
+}
+
+uretprobe:libc:open
+/@end_openat[tid]/
+{
+	@total_to_user[comm] += (nsecs - @end_openat[tid]);
+	@counter_to_user[comm] = count();
+	delete(@end_openat[tid]);
 }

@@ -1,0 +1,32 @@
+#!/usr/bin/bpftrace
+
+uprobe:libc:read
+{
+	@start_read[tid] = nsecs;
+}
+
+kprobe:ksys_read
+/@start_read[tid]/
+{
+	@start_read_kernel[tid] = nsecs;
+	@total_to_kernel[comm] += (@start_read_kernel[tid] - @start_read[tid]);
+	@counter_to_kernel[comm] = count();
+	delete(@start_read[tid]);
+}
+
+kretprobe:ksys_read
+/@start_read_kernel[tid]/
+{
+	@end_read_kernel[tid] = nsecs;
+	@total_service[comm] += (@end_read_kernel[tid] - @start_read_kernel[tid]);
+	@counter_service[comm] = count();
+	delete(@start_read_kernel[tid])
+}
+
+uretprobe:libc:read
+/@end_read_kernel[tid]/
+{
+	@total_to_user[comm] += (nsecs - @end_read_kernel[tid]);
+	@counter_to_user[comm] = count();
+	delete(@end_read_kernel[tid]);
+}
