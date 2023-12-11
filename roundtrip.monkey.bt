@@ -1,167 +1,89 @@
-/*
- * TODO: name, explanation, etc.
- *
- * based off Brendan Gregg's scripts + cheatsheet
- */
-
-#define MONKEY_ENTER(x) \
-    if($2){ \
-        printf("[%ld][%ld][%ld][%s] u-> %s\n", cpu, pid, tid,comm, probe); \
-    } \
-    if(@ustart[tid]){ /* should be impossible */ \
-        exit(); \
-    } \
-    $now = nsecs; \
-    @ustart[tid] = $now; \
-    @uname[tid] = x; /* can't use func */ \
-    /* the following only works for single threaded programs */ \
-    if(@start_out[pid, x]){ \
-        printf("Uh ohh!\n"); \
-        exit(); \
-    } \
-    @start_out[pid, x] = $now; \
-    @name_out[pid] = x;
-
-#define IO_ENTER(x) \
-    if($2){ \
-        printf("[%ld][%ld][%ld][%s]\t->k %s\n", cpu, pid, tid,comm, probe); \
-    } \
-    if(@kstart[tid]){ /* should be on a different thread */ \
-        printf("Uh oh!\n"); \
-        exit(); \
-    } \
-    $now = nsecs; \
-    @kstart[tid] = $now; \
-    @kname[tid] = func; \
-    if(@start_out[pid, x]){ /* this request should've started at monkey */ \
-        @out_us[@name_out[pid]] = hist(($now - @start_out[pid, x]) / 1000); \
-        delete(@start_out[pid, x]); \
-        delete(@name_out[pid]); \
-    }
+#!/usr/bin/env bpftrace
 
 BEGIN
 {
     printf("Hit Ctrl-C to end.\n");
 }
 
-// don't print these things
 END
 {
-    clear(@ustart);
-    clear(@uname);
-    clear(@kstart);
-    clear(@kname);
-    clear(@start_out);
-    clear(@name_out);
+    clear(@follow);
+
+    clear(@read_ns);
+    clear(@write_ns);
+    clear(@open_ns);
+    clear(@close_ns);
 }
 
-usdt:$1:read_enter
+usdt:$2:read_enter
+/pid == $1 && !@follow/
 {
-    MONKEY_ENTER("read")
+    @follow = nsecs;
+    @event_count["read"]++;
 }
-usdt:$1:write_enter
+usdt:$2:write_enter
+/pid == $1 && !@follow/
 {
-    MONKEY_ENTER("write")
+    @follow = nsecs;
+    @event_count["write"]++;
 }
-usdt:$1:open_enter
+usdt:$2:open_enter
+/pid == $1 && !@follow/
 {
-    MONKEY_ENTER("open")
+    @follow = nsecs;
+    @event_count["open"]++;
 }
-usdt:$1:close_enter
+usdt:$2:close_enter
+/pid == $1 && !@follow/
 {
-    MONKEY_ENTER("close")
-}
-usdt:$1:fsync_enter
-{
-    MONKEY_ENTER("fsync")
-}
-
-usdt:$1:read_exit,usdt:$1:write_exit,usdt:$1:open_exit,usdt:$1:close_exit,usdt:$1:fsync_exit
-/@ustart[tid]/
-{
-    if($2){
-        printf("[%ld][%ld][%ld][%s] u<- %s\n\n", cpu, pid, tid,comm, probe);
-    }
-    if(!@ustart[tid]){
-        printf("fatal\n");
-        exit();
-    }
-    @utotal_us[@uname[tid]] = hist((nsecs - @ustart[tid]) / 1000);
-    delete(@ustart[tid]);
-    delete(@uname[tid]);
+    @follow = nsecs;
+    @event_count["close"]++;
 }
 
-//kprobe:io_sq_thread
+usdt:$2:read_exit
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @read_ns[@event_count["read"]] = $total;
+    delete(@follow);
+    @read_ns_hist = stats($total);
+}
+usdt:$2:write_exit
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @write_ns[@event_count["write"]] = $total;
+    delete(@follow);
+    @write_ns_hist = stats($total);
+}
+usdt:$2:open_exit
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @open_ns[@event_count["open"]] = $total;
+    delete(@follow);
+    @open_ns_hist = stats($total);
+}
+usdt:$2:close_exit
+/pid == $1 && @follow/
+{
+    $total = nsecs - @follow;
+    @close_ns[@event_count["close"]] = $total;
+    delete(@follow);
+    @close_ns_hist = stats($total);
+}
+
+//interval:s:1
 //{
-//    //@sqpoll = comm;
-//}
-
-kprobe:io_read
-/strcontains(comm, "iou-sqp-")/
-{
-    IO_ENTER("read")
-}
-kprobe:io_write
-/strcontains(comm, "iou-sqp-")/
-{
-    IO_ENTER("write")
-}
-kprobe:io_openat
-/strcontains(comm, "iou-sqp-")/
-{
-    IO_ENTER("openat")
-}
-kprobe:io_close
-/strcontains(comm, "iou-sqp-")/
-{
-    IO_ENTER("close")
-}
-kprobe:io_fsync
-/strcontains(comm, "iou-sqp-")/
-{
-    IO_ENTER("fsync")
-}
-
-kretprobe:io_read,kretprobe:io_write,kretprobe:io_openat,kretprobe:io_close,kretprobe:io_fsync
-/strcontains(comm, "iou-sqp-") && @kstart[tid]/
-{ // idk what the iou-wrk- worker business is if you comment out strcontains
-    if($2){
-        printf("[%ld][%ld][%ld][%s]\t<-k %s\n", cpu, pid, tid,comm, probe);
-    }
-    @ktotal_us[@kname[tid]] = hist((nsecs - @kstart[tid]) / 1000);
-    delete(@kstart[tid]);
-    delete(@kname[tid]);
-}
-
-//kprobe:io_write
-//{
-//    printf("[%ld][%s] entered %s\n", pid, comm, probe);
-//    printf("%s\n", kstack());
-//    //@enter[tid] = pid;
-//    //@start[tid] = nsecs;
-//}
+//    print(@read_ns);
+//    clear(@read_ns);
 //
-//kprobe:io_openat
-//{
-//    printf("[%ld][%s] entered %s\n", pid, comm, probe);
-//    printf("%s\n", kstack());
-//    //@enter[tid] = pid;
-//    //@start[tid] = nsecs;
+//    print(@write_ns);
+//    clear(@write_ns);
+//
+//    print(@open_ns);
+//    clear(@open_ns);
+//
+//    print(@close_ns);
+//    clear(@close_ns);
 //}
-
-kprobe:vfs_read
-/strcontains(comm, "iou-sqp-")/
-{
-    printf("%s\n", kstack(perf));
-    exit(); // io_uring doesn't seem to ever call vfs_read
-}
-
-kretprobe:vfs_read
-/strcontains(comm, "iou-sqp-")/
-{
-    //@microsecs[@name[tid]] = hist((nsecs - @start[tid]) / 1000);
-    ////printf("%s\n", kstack(perf));
-    printf("Weeeeee!\n");
-}
-
-
