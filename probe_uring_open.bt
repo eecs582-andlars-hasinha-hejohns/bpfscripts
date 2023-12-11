@@ -1,6 +1,6 @@
 #!/usr/bin/bpftrace
 
-usdt:$1:open_entry
+usdt:$1:open_enter
 {
 	@start_open = nsecs
 }
