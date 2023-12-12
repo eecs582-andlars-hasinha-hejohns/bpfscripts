@@ -93,3 +93,6 @@ This script measures how long it takes to make any of the following syscall when
 
 ## vfs_time
 This script will create histograms for how long it takes vfs to service any request (vfs_open, vfs_close, etc.). User will have to ctrl-c the script to print the histograms.
+
+# Results
+The results folder contains all the output of the above scripts for all microbenchmarks defined in our report. The files prefixed with 'do_work' and 'no_work' correspond to the do_work and no_work tests defined in our report. Any test that has the words libmonkey or uring in them indicate they were generated when using libmonkey.so. Any report that references libc or references neither libc nor libmonkey indicate that they were generated when using libc (i.e., sector_test_result.txt, num_syscalls.txt, etc.). All times are reported in nanoseconds.
