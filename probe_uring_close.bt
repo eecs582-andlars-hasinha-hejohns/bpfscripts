@@ -1,0 +1,32 @@
+#!/usr/bin/bpftrace
+
+usdt:$1:close_enter
+{
+	@start_close = nsecs;
+}
+
+kprobe:io_close
+/@start_close/
+{
+	@start_close_kernel = nsecs;
+	@total_to_kernel[comm] += (@start_close_kernel - @start_close);
+	@counter_to_kernel[comm] = count();
+	delete(@start_close);
+}
+
+kretprobe:io_close
+/@start_close_kernel/
+{
+	@end_close_kernel = nsecs;
+	@total_service[comm] += (@end_close_kernel - @start_close_kernel);
+	@counter_service[comm] = count();
+	delete(@start_close_kernel)
+}
+
+usdt:$1:close_exit
+/@end_close_kernel/
+{
+	@total_to_user[comm] += (nsecs - @end_close_kernel);
+	@counter_to_user[comm] = count();
+	delete(@end_close_kernel);
+}
