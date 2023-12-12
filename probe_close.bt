@@ -1,0 +1,32 @@
+#!/usr/bin/bpftrace
+
+uprobe:libc:close
+{
+	@start_close[tid] = nsecs;
+}
+
+tracepoint:syscalls:sys_enter_close
+/@start_close[tid]/
+{
+	@start_close_kernel[tid] = nsecs;
+	@total_to_kernel[comm] += (@start_close_kernel[tid] - @start_close[tid]);
+	@counter_to_kernel[comm] = count();
+	delete(@start_close[tid]);
+}
+
+tracepoint:syscalls:sys_exit_close
+/@start_close_kernel[tid]/
+{
+	@end_close_kernel[tid] = nsecs;
+	@total_service[comm] += (@end_close_kernel[tid] - @start_close_kernel[tid]);
+	@counter_service[comm] = count();
+	delete(@start_close_kernel[tid])
+}
+
+uretprobe:libc:close
+/@end_close_kernel[tid]/
+{
+	@total_to_user[comm] += (nsecs - @end_close_kernel[tid]);
+	@counter_to_user[comm] = count();
+	delete(@end_close_kernel[tid]);
+}

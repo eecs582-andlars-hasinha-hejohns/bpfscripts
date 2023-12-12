@@ -1,0 +1,67 @@
+##### results for probe_uring_open.bt #####
+sudo ./probe_uring_open.bt ../io_uring_example/libmonkey/libmonkey.so 
+Attaching 4 probes...
+^C
+@counter_service[iou-sqp-6848]: 1048576
+@counter_to_kernel[iou-sqp-6848]: 1048576
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[iou-sqp-6848]: 1367328937
+@total_to_kernel[iou-sqp-6848]: 1964610024
+@total_to_user[benchmark_secto]: 40062101587
+
+## averages
+to_kernel: 1873.60
+service: 1303.99
+to_user: 38206.20
+
+##### results for probe_uring_read.bt #####
+sudo ./probe_uring_read.bt ../io_uring_example/libmonkey/libmonkey.so 
+Attaching 4 probes...
+^C
+@counter_service[iou-sqp-10272]: 1048576
+@counter_to_kernel[iou-sqp-10272]: 1048576
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[iou-sqp-10272]: 2506734209
+@total_to_kernel[iou-sqp-10272]: 1751553919
+@total_to_user[benchmark_secto]: 2207895880
+
+## averages
+to_kernel: 1670.41
+service: 2390.61
+to_user: 2105.61
+
+##### results for probe_uring_write.bt #####
+sudo ./probe_uring_write.bt ../io_uring_example/libmonkey/libmonkey.so 
+Attaching 4 probes...
+^C
+@counter_service[iou-sqp-6848]: 1048576
+@counter_to_kernel[iou-sqp-6848]: 1048576
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[iou-sqp-6848]: 1806884695
+@total_to_kernel[iou-sqp-6848]: 1970545965
+@total_to_user[benchmark_secto]: 28338812798
+
+## averages
+to_kernel: 1879.26
+service: 1723.18
+to_user: 27025.99
+
+##### results for probe_uring_close.bt #####
+sudo ./probe_uring_close.bt ../io_uring_example/libmonkey/libmonkey.so 
+Attaching 4 probes...
+^C
+@counter_service[iou-sqp-6848]: 1048576
+@counter_to_kernel[iou-sqp-6848]: 1048576
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[iou-sqp-6848]: 1379454900
+@total_to_kernel[iou-sqp-6848]: 1410165020
+@total_to_user[benchmark_secto]: 2094489759
+
+## averages
+to_kernel: 1344.84
+service: 1315.55
+to_user: 1997.46

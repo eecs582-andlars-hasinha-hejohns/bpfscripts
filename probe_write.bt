@@ -1,0 +1,32 @@
+#!/usr/bin/bpftrace
+
+uprobe:libc:write
+{
+	@start_write[tid] = nsecs;
+}
+
+tracepoint:syscalls:sys_enter_write
+/@start_write[tid]/
+{
+	@start_write_kernel[tid] = nsecs;
+	@total_to_kernel[comm] += (@start_write_kernel[tid] - @start_write[tid]);
+	@counter_to_kernel[comm] = count();
+	delete(@start_write[tid]);
+}
+
+tracepoint:syscalls:sys_exit_write
+/@start_write_kernel[tid]/
+{
+	@end_write_kernel[tid] = nsecs;
+	@total_service[comm] += (@end_write_kernel[tid] - @start_write_kernel[tid]);
+	@counter_service[comm] = count();
+	delete(@start_write_kernel[tid])
+}
+
+uretprobe:libc:write
+/@end_write_kernel[tid]/
+{
+	@total_to_user[comm] += (nsecs - @end_write_kernel[tid]);
+	@counter_to_user[comm] = count();
+	delete(@end_write_kernel[tid]);
+}

@@ -1,0 +1,15 @@
+#### filtered results for monitor_syscalls.bt ####
+sudo ./monitor_syscalls.bt
+Attaching 10 probes...
+^C
+
+# all times are in nanoseconds
+@sys_enter_close[benchmark_secto]: 1048578
+
+@sys_enter_openat[benchmark_secto]: 1048578
+
+@sys_enter_read[benchmark_secto]: 1048577
+
+@sys_enter_write[benchmark_secto]: 1048576
+
+## NOTE: all syscalls monitored which the process did not call are not printed

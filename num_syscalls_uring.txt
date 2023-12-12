@@ -1,0 +1,9 @@
+#### filtered results for monitor_syscalls.bt ####
+sudo ./monitor_syscalls.bt
+Attaching 10 probes...
+^C
+
+# all times are in nanoseconds
+@sys_enter_io_uring_setup[benchmark_secto]: 2
+
+## NOTE: all syscalls monitored which the process did not call are not printed
