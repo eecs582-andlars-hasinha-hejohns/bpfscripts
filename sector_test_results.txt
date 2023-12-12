@@ -1,5 +1,6 @@
-##### filtered results for probe_write.bt #####
-sudo ./probe_write.bt 
+##### filtered results for probe_open.bt #####
+sudo ./probe_open.bt 
+[sudo] password for harsh: 
 Attaching 4 probes...
 ^C
 @counter_service[benchmark_secto]: 1048576
@@ -8,19 +9,19 @@ Attaching 4 probes...
 
 @counter_to_user[benchmark_secto]: 1048576
 
-@total_service[benchmark_secto]: 8351312818
+@total_service[benchmark_secto]: 11067818844
 
-@total_to_kernel[benchmark_secto]: 4236186199
+@total_to_kernel[benchmark_secto]: 3933706284
 
-@total_to_user[benchmark_secto]: 1707551782
+@total_to_user[benchmark_secto]: 1650542047
 
 ## averages
-to_kernel: 4039.94
-service: 7964.43
-to_user: 1628.45
+to_kernel: 
+service: 
+to_user: 
 
-##### filtered results of probe_close.bt #####
-sudo ./probe_close.bt 
+##### filtered results for probe_read.bt #####
+sudo ./probe_read.bt 
 Attaching 4 probes...
 ^C
 @counter_service[benchmark_secto]: 1048576
@@ -29,13 +30,57 @@ Attaching 4 probes...
 
 @counter_to_user[benchmark_secto]: 1048576
 
-@total_service[benchmark_secto]: 1042849176
+@total_service[benchmark_secto]: 1645182633
 
-@total_to_kernel[benchmark_secto]: 3936254955
+@total_to_kernel[benchmark_secto]: 3878709436
 
-@total_to_user[benchmark_secto]: 2987234555
+@total_to_user[benchmark_secto]: 1411611444
 
-## averages:
-to_kernel: 3753.91
-service: 994.54
-to_user: 2848.85
+## averages
+to_kernel: 
+service: 
+to_user: 
+
+##### filtered results for probe_write.bt #####
+sudo ./probe_write.bt 
+[sudo] password for harsh: 
+Attaching 4 probes...
+^C
+@counter_service[benchmark_secto]: 1048576
+
+@counter_to_kernel[benchmark_secto]: 1048576
+
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[benchmark_secto]: 6302791077
+
+@total_to_kernel[benchmark_secto]: 3836810871
+
+@total_to_user[benchmark_secto]: 1500017082
+
+## averages
+to_kernel: 
+service: 
+to_user: 
+
+##### filtered results for probe_close.bt #####
+sudo ./probe_close.bt 
+[sudo] password for harsh: 
+Attaching 4 probes...
+^C
+@counter_service[benchmark_secto]: 1048576
+
+@counter_to_kernel[benchmark_secto]: 1048576
+
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[benchmark_secto]: 954838297
+
+@total_to_kernel[benchmark_secto]: 3704929229
+
+@total_to_user[benchmark_secto]: 2038110364
+
+## averages
+to_kernel: 
+service: 
+to_user: 
