@@ -11,7 +11,7 @@ bpftrace requires root privilege to run so all the scripts in this repo require 
 When a script starts succesfully the following message should be seen:  
 `Attaching X probes...`
 
-Depending on which script you are running you may see occasional print outs when the scripts is running. To end the script and print the results you have to ctrl-c out of the program. At this point the script will print out all variables that it has been updating while running. 
+Depending on which script you are running you may see occasional print outs when the scripts is running. To end the script and print the results you have to ctrl-c out of the program. At this point the script will print out all variables that it has been updating while running. Specifically when running scripts to monitor libc, you will have to sort through everything printed to the terminal to find all relevant information for the process you wanted to monitor. Some scripts enforce a command line argument to filter which PID to monitor.
 
 # Sample Program
 Navigate to 'sample_program' directory and build by calling 'make'. This is a simple program that you can test all scripts in this repo with. There are two ways of running the program:  
