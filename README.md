@@ -63,14 +63,14 @@ The output will be as follows:
 
 To get the average one has to manually divide the total and counter values.
 
-## round_trip.micro.bt (deprecated)
+## round_trip.micro (deprecated)
 This script measures how long it takes to make any of the following syscall: read, write, open, close. When the user ctrl-c out of the script it will print a histogram of times it took. It is meant to be run to measure a program making multiple (previously listed) syscalls. You have to call it with the PID of the process you want to monitor. Not to be used to measure libmonkey.so. Example usage:  
 `sudo ./round_trip.micro.bt PROCESS_PID`  
 
-## roundtrip.libc.bt
+## roundtrip.libc
 This script is the improved version of 'round_trip.micro.bt', and has the same rules/expectations/usage when using. This script simplifies the implementation and monitoring of the syscalls when compared to 'round_trip.micro.bt'
 
-## roundtrip.monkey.bt
+## roundtrip.monkey
 This script measures how long it takes to make any of the following syscall when using libmonkey: read, write, open, close. When the user ctrl-c out of the script it will print a histogram of times it took. It is meant to be run to measure a program making multiple (previously listed) syscalls. You have to call it with the PID of the process you want to monitor, as well as the relative path to libmonkey.so. Example usage:  
 `sudo ./roundtrip.monkey.bt PROCESS_PID ../relative/path/to/libmonkey.so`  
 
