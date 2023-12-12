@@ -16,9 +16,9 @@ Attaching 4 probes...
 @total_to_user[benchmark_secto]: 1650542047
 
 ## averages
-to_kernel: 
-service: 
-to_user: 
+to_kernel: 3751.48
+service: 10555.09
+to_user: 1574.08
 
 ##### filtered results for probe_read.bt #####
 sudo ./probe_read.bt 
@@ -37,9 +37,9 @@ Attaching 4 probes...
 @total_to_user[benchmark_secto]: 1411611444
 
 ## averages
-to_kernel: 
-service: 
-to_user: 
+to_kernel: 3699.03
+service: 1568.97
+to_user: 1346.22
 
 ##### filtered results for probe_write.bt #####
 sudo ./probe_write.bt 
@@ -59,9 +59,9 @@ Attaching 4 probes...
 @total_to_user[benchmark_secto]: 1500017082
 
 ## averages
-to_kernel: 
-service: 
-to_user: 
+to_kernel: 3659.07
+service: 6010.81
+to_user: 1430.53
 
 ##### filtered results for probe_close.bt #####
 sudo ./probe_close.bt 
@@ -81,6 +81,6 @@ Attaching 4 probes...
 @total_to_user[benchmark_secto]: 2038110364
 
 ## averages
-to_kernel: 
-service: 
-to_user: 
+to_kernel: 3533.30
+service: 910.60
+to_user: 1943.69
