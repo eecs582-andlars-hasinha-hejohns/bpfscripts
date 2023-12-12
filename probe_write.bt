@@ -5,7 +5,7 @@ uprobe:libc:write
 	@start_write[tid] = nsecs;
 }
 
-kprobe:ksys_write
+tracepoint:syscalls:sys_enter_write
 /@start_write[tid]/
 {
 	@start_write_kernel[tid] = nsecs;
@@ -14,7 +14,7 @@ kprobe:ksys_write
 	delete(@start_write[tid]);
 }
 
-kretprobe:ksys_write
+tracepoint:syscalls:sys_exit_write
 /@start_write_kernel[tid]/
 {
 	@end_write_kernel[tid] = nsecs;

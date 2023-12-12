@@ -5,7 +5,7 @@ uprobe:libc:read
 	@start_read[tid] = nsecs;
 }
 
-kprobe:ksys_read
+tracepoint:syscalls:sys_enter_read
 /@start_read[tid]/
 {
 	@start_read_kernel[tid] = nsecs;
@@ -14,7 +14,7 @@ kprobe:ksys_read
 	delete(@start_read[tid]);
 }
 
-kretprobe:ksys_read
+tracepoint:syscalls:sys_exit_open
 /@start_read_kernel[tid]/
 {
 	@end_read_kernel[tid] = nsecs;
