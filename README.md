@@ -52,16 +52,31 @@ This generates the monkey-vfs-times.bt script. We use this hack to avoid having 
 
 ***Note:*** You should not have to use these files  
 
-## probe_open
-This script measures how long it takes from the following point to the following point:
-* User application calling unmodified glibc `open()` syscall
-* Kernel calling the kernel-implementation of opening somthing: `do_sys_openat2()`
+## probe_SYSCALL and probe_uring_SYSCALL
+These class of scripts provide sector measurement timing. Sectors are defined as follows:
+* “To Kernel” - This is the amount of time in nanoseconds it takes from when a user enters the glibc/libmonkey syscall implementation to when it starts getting serviced in the kernel.
+* “Service” - This is the amount of time in nanoseconds it takes from starting to service the request in the kernel to when the request is done servicing.
+* “To User” - This is the amount of time in nanoseconds it takes from when the request is done being serviced in the kernel to when the user exits the glibc/libmonkey syscall implementation.
 
-The output will be as follows:  
-`@total[process_name] = time_in_nanoseconds`  
-`@counter[process_name] = times_called`  
+Each script should attach to 4 probe points, and will print out the following information when a user ctrl-c the program:
+* total_to_kernel[process_name] corresponds to the total time spent in the "To Kernel" sector
+* total_service[process_name] corresponds to the total time spent in the "Service" sector
+* total_to_user[process_name] corresponds to the total time spent in the "To User" sector
+* counter_to_kernel[process_name] represents the number of times the "To Kernel" sector was executed
+* counter_service[process_name] represents the number of times the "Service" sector was executed
+* counter_to_user[process_name] represents the number of times the "To User" sector was executed
 
-To get the average one has to manually divide the total and counter values.
+***Note:*** All times are reported in nanoseconds.  
+
+Average information for each sector is calculated manually as a post-processing step. The following subsections provide more details on ouput and usage.
+
+### probe_SYSCALL
+These class of scripts provide sector information for glibc, and are NOT meant to be used with libmonkey.so. They print out sector information for all processes running on your machine. You will have to post-process the output to get rid of any info/variables you do not wish to look at. Below is an example of how to use the script:  
+`sudo ./probe_SYSCALL`
+
+### probe_uring_SYSCALL
+These class of scripts provide sector information for libmonkey.so, and are NOT meant to be used with glibc. They will only print out sector information for the process launched with libmonkey. However, instead of using the process name of the original process, these scripts will use the process name of the kernel thread to report the following variables: total_service, total_to_kernel, counter_service, counter_to_kernel. This script does not require the post-processing step to get rid of processes that are not of interest. This script requires that a user specify the relative path to libmonkey.so. Below is an example of how to use the script:  
+`sudo ./probe_uring_SYSCALL ../relative/path/to/libmonkey.so`  
 
 ## round_trip.micro (deprecated)
 This script measures how long it takes to make any of the following syscall: read, write, open, close. When the user ctrl-c out of the script it will print a histogram of times it took. It is meant to be run to measure a program making multiple (previously listed) syscalls. You have to call it with the PID of the process you want to monitor. Not to be used to measure libmonkey.so. Example usage:  
