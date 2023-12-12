@@ -1,0 +1,21 @@
+Attaching 10 probes...
+Hit Ctrl-C to end.
+
+
+
+@close_ns_hist: count 1048576, average 2707, total 2838937318
+
+@event_count[open]: 1048576
+@event_count[write]: 1048576
+@event_count[read]: 1048576
+@event_count[close]: 1048576
+
+
+@open_ns_hist: count 1048576, average 25758, total 27009248889
+
+
+@read_ns_hist: count 1048576, average 3180, total 3334750325
+
+
+@write_ns_hist: count 1048576, average 17772, total 18635380016
+
