@@ -70,5 +70,9 @@ This script measures how long it takes to make any of the following syscall: rea
 ## roundtrip.libc.bt
 This script is the improved version of 'round_trip.micro.bt', and has the same rules/expectations/usage when using. This script simplifies the implementation and monitoring of the syscalls when compared to 'round_trip.micro.bt'
 
+## roundtrip.monkey.bt
+This script measures how long it takes to make any of the following syscall when using libmonkey: read, write, open, close. When the user ctrl-c out of the script it will print a histogram of times it took. It is meant to be run to measure a program making multiple (previously listed) syscalls. You have to call it with the PID of the process you want to monitor, as well as the relative path to libmonkey.so. Example usage:  
+`sudo ./roundtrip.monkey.bt PROCESS_PID ../relative/path/to/libmonkey.so`  
+
 ## vfs_time
 This script will create histograms for how long it takes vfs to service any request (vfs_open, vfs_close, etc.). User will have to ctrl-c the script to print the histograms.
