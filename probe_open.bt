@@ -5,7 +5,7 @@ uprobe:libc:open
 	@start_open[tid] = nsecs;
 }
 
-tracepoint:syscalls:sys_enter_open
+tracepoint:syscalls:sys_enter_openat
 /@start_open[tid]/
 {
 	@start_openat[tid] = nsecs;
@@ -14,7 +14,7 @@ tracepoint:syscalls:sys_enter_open
 	delete(@start_open[tid]);
 }
 
-tracepoint:syscalls:sys_exit_open
+tracepoint:syscalls:sys_exit_openat
 /@start_openat[tid]/
 {
 	@end_openat[tid] = nsecs;

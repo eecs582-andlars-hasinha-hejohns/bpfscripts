@@ -14,7 +14,7 @@ tracepoint:syscalls:sys_enter_read
 	delete(@start_read[tid]);
 }
 
-tracepoint:syscalls:sys_exit_open
+tracepoint:syscalls:sys_exit_read
 /@start_read_kernel[tid]/
 {
 	@end_read_kernel[tid] = nsecs;
