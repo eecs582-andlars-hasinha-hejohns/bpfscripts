@@ -18,6 +18,11 @@ Navigate to 'sample_program' directory and build by calling 'make'. This is a si
 * `./sample_program` - this method will use standard glibc
 * `LD_PRELOAD=../relative/path/to/libmonkey.so ./sample_program` - this method will use our modified syscalls
 
+# Sector Benchmarking
+Navigate to 'sector_benchmark' directory and build by calling 'make'. This program is what was used to generate sector, number of syscalls, and start time microbenchmark results. It repeatedly calls open, read, write, and close to simulate a basic long running file workload. There are two ways of running the program:  
+* `./benchmark_sector` - this method will use standard glibc
+* `LD_PRELOAD=../relative/path/to/libmonkey.so ./benchmark_sector` - this method will use our modified syscalls
+
 # Script Overview
 The following subsections explain what each file/script does.
 
