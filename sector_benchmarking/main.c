@@ -26,6 +26,8 @@ int main(int argc, char* argv[])
         write_buffer[strlen(write_buffer)] = '\n';
 
         write(fd, write_buffer, strlen(write_buffer));
+        
+        fsync(fd);
 
         lseek(fd, 0, SEEK_SET);
 
