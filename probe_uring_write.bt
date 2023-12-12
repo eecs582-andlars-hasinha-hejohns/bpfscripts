@@ -1,0 +1,32 @@
+#!/usr/bin/bpftrace
+
+usdt:$1:write_enter
+{
+	@start_write = nsecs;
+}
+
+kprobe:io_write
+/@start_write/
+{
+	@start_write_kernel = nsecs;
+	@total_to_kernel[comm] += (@start_write_kernel - @start_write);
+	@counter_to_kernel[comm] = count();
+	delete(@start_write);
+}
+
+kretprobe:io_write
+/@start_write_kernel/
+{
+	@end_write_kernel = nsecs;
+	@total_service[comm] += (@end_write_kernel - @start_write_kernel);
+	@counter_service[comm] = count();
+	delete(@start_write_kernel)
+}
+
+usdt:$1:write_exit
+/@end_write_kernel/
+{
+	@total_to_user[comm] += (nsecs - @end_write_kernel);
+	@counter_to_user[comm] = count();
+	delete(@end_write_kernel);
+}
