@@ -1,0 +1,41 @@
+##### filtered results for probe_write.bt #####
+sudo ./probe_write.bt 
+Attaching 4 probes...
+^C
+@counter_service[benchmark_secto]: 1048576
+
+@counter_to_kernel[benchmark_secto]: 1048576
+
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[benchmark_secto]: 8351312818
+
+@total_to_kernel[benchmark_secto]: 4236186199
+
+@total_to_user[benchmark_secto]: 1707551782
+
+## averages
+to_kernel: 4039.94
+service: 7964.43
+to_user: 1628.45
+
+##### filtered results of probe_close.bt #####
+sudo ./probe_close.bt 
+Attaching 4 probes...
+^C
+@counter_service[benchmark_secto]: 1048576
+
+@counter_to_kernel[benchmark_secto]: 1048576
+
+@counter_to_user[benchmark_secto]: 1048576
+
+@total_service[benchmark_secto]: 1042849176
+
+@total_to_kernel[benchmark_secto]: 3936254955
+
+@total_to_user[benchmark_secto]: 2987234555
+
+## averages:
+to_kernel: 3753.91
+service: 994.54
+to_user: 2848.85
