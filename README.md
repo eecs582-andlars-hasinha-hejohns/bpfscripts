@@ -52,8 +52,9 @@ Once a user ctrl-c out of the script it will print timing information in the for
   
 ***Note:*** this is for use with our modified syscalls
 
-## monkey-vfs-time.pre + Makefile
-This generates the monkey-vfs-times.bt script. We use this hack to avoid having to copy-paste a bunch of probes and make use of a macro instead.  
+## monkey-vfs-times.pre
+This is a pre-processor file to generate the monkey-vfs-times.bt script. We use this hack to avoid having to copy-paste a bunch of probes and make use of a macro instead. To create the monkey-vfs-time script run the followning make recipe in the root directory:  
+`make monkey-vfs-times.bt`
 
 ***Note:*** You should not have to use these files  
 
