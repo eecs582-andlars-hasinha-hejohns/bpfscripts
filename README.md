@@ -28,6 +28,20 @@ Navigate to 'sector_benchmark' directory and build by calling 'make'. This progr
 * `./benchmark_sector` - this method will use standard glibc
 * `LD_PRELOAD=../relative/path/to/libmonkey.so ./benchmark_sector` - this method will use our modified syscalls
 
+# no_work Benchmark
+***Warning:*** You will need to have installed `tcc` to proceed!  
+
+This program is what we used to generate all the data for the no_work microbenchmark graphs. To build the program run one of the following commands based on which program you want to run in the root directory of the repo:  
+* `make no_work-4KB`
+* `make no_work-16KB`
+* `make no_work-4MB`
+
+# do_work Benchmark
+***Warning:*** You will need to have installed `tcc` to proceed!  
+
+This program is what we used to generate all the data for the do_work microbenchmark graphs. To build the program run the following command in the root directory of the repo:  
+`make no_work-16KB`
+
 # Script Overview
 The following subsections explain what each file/script does.
 
